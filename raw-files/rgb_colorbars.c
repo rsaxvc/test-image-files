@@ -8,7 +8,7 @@ int img_open( const char * fname_base, int width, int height, const char * fname
 char fname[1000];
 snprintf( fname, sizeof( fname ), "%s_%ix%i.%s", fname_base, width, height, fname_ext );
 printf("Opening:%s\n", fname );
-return open( fname, flags );
+return open( fname, flags, 0444 );
 }
 
 int machine_is_little_endian( void )
@@ -55,6 +55,8 @@ int main()
 {
 int fd_rgb_565_be;
 int fd_rgb_565_le;
+int fd_bgr_565_be;
+int fd_bgr_565_le;
 int fd_rgb_888;
 int width = 50;
 int height = 150;
@@ -71,12 +73,15 @@ uint16_t rgb565;
 
 fd_rgb_565_le = img_open("colorbars_rgb565le", width, height, EXT, FLAGS );
 fd_rgb_565_be = img_open("colorbars_rgb565be", width, height, EXT, FLAGS );
+fd_bgr_565_le = img_open("colorbars_bgr565le", width, height, EXT, FLAGS );
+fd_bgr_565_be = img_open("colorbars_bgr565be", width, height, EXT, FLAGS );
 fd_rgb_888    = img_open("colorbars_rgb888"  , width, height, EXT, FLAGS );
 
 for( y = 0; y < height; ++y )
 	{
 	for( x = 0; x < width; ++x )
 		{
+		//RGB888
 		r = ( y < ( height / 3 ) ) ? 0xFF:0;
 		write( fd_rgb_888, &r, sizeof( r ) );
 
@@ -86,15 +91,27 @@ for( y = 0; y < height; ++y )
 		b = ( y > ( 2 * height / 3 ) ) ? 0xFF:0;
 		write( fd_rgb_888, &b, sizeof( b ) );
 
+		//RGB565LE
 		rgb565 = rgb_888_to_565le( r, g, b );
 		write( fd_rgb_565_le, &rgb565, sizeof( rgb565 ) );
 
+		//RGB565LE
 		rgb565 = rgb_888_to_565be( r, g, b );
 		write( fd_rgb_565_be, &rgb565, sizeof( rgb565 ) );
+
+		//BGR565LE
+		rgb565 = rgb_888_to_565le( b, g, r );
+		write( fd_bgr_565_le, &rgb565, sizeof( rgb565 ) );
+
+		//BGR565LE
+		rgb565 = rgb_888_to_565be( b, g, r );
+		write( fd_bgr_565_be, &rgb565, sizeof( rgb565 ) );
 		}
 	}
 
 close( fd_rgb_888 );
 close( fd_rgb_565_le );
 close( fd_rgb_565_be );
+close( fd_bgr_565_le );
+close( fd_bgr_565_be );
 }
